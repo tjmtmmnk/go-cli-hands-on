@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 	"text/template"
+	"github.com/rakyll/statik/fs"
+	_ "github.com/tjmtmmnk/go-cli-hands-on/statik"
 )
 
 var flagVersion bool
@@ -50,8 +52,9 @@ func main() {
 }
 
 func handleAddCmd(filename string) error {
-	filePath := fmt.Sprintf("./templates/report.md.tmpl")
-	byteTmpl, _ := ioutil.ReadFile(filePath)
+	statikFs, _ := fs.New()
+	tplFile, _ := statikFs.Open("/report.md.tmpl")
+	byteTmpl, _ := ioutil.ReadAll(tplFile)
 	stringTmpl := string(byteTmpl)
 
 	tmpl := template.Must(template.New("report").Parse(stringTmpl))
