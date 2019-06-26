@@ -2,25 +2,27 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
-	"github.com/spf13/cobra"
 
-	homedir "github.com/mitchellh/go-homedir"
-	"github.com/spf13/viper"
+	"github.com/spf13/cobra"
 )
 
-var cfgFile string
+const version = "v0.0.4"
 
-// rootCmd represents the base command when called without any subcommands
+var flgVerbose bool
+
 var rootCmd = &cobra.Command{
 	Use:   "dailyrepo",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "日報作成ツール",
+	Long:  "テンプレートから日報の雛形を作成します",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		v, _ := cmd.Flags().GetBool("version")
+		if v {
+			printVersion(os.Stdout)
+		}
+		return nil
+	},
 }
 
 func Execute() {
@@ -31,27 +33,15 @@ func Execute() {
 }
 
 func init() {
+	cobra.OnInitialize(func() {
+		if flgVerbose {
+			fmt.Println("Verbose output is enabled")
+		}
+	})
+	rootCmd.Flags().BoolP("version", "v", false, "Print version")
+	rootCmd.PersistentFlags().BoolVar(&flgVerbose, "verbose", false, "Print log")
 }
 
-func initConfig() {
-	if cfgFile != "" {
-
-		viper.SetConfigFile(cfgFile)
-	} else {
-
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".dailyrepo")
-	}
-
-	viper.AutomaticEnv() // read in environment variables that match
-
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
+func printVersion(out io.Writer) {
+	_, _ = fmt.Fprintf(out, "dailyrepo %s\n", version)
 }
